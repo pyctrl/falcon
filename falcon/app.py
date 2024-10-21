@@ -219,6 +219,10 @@ class App:
         sink_before_static_route (bool): Indicates if the sinks should be processed
             before (when ``True``) or after (when ``False``) the static routes.
             This has an effect only if no route was matched. (default ``True``)
+
+        default_error_handlers (bool): Set this flag to ``False`` to disable
+            loading default error handlers.
+            (default ``True``).
     '''
 
     _META_METHODS: ClassVar[FrozenSet[str]] = frozenset(constants._META_METHODS)
@@ -310,6 +314,7 @@ class App:
         independent_middleware: bool = True,
         cors_enable: bool = False,
         sink_before_static_route: bool = True,
+        default_error_handlers: bool = True,
     ) -> None:
         self._cors_enable = cors_enable
         self._sink_before_static_route = sink_before_static_route
@@ -354,10 +359,10 @@ class App:
         self.req_options.default_media_type = media_type
         self.resp_options.default_media_type = media_type
 
-        # NOTE(kgriffs): Add default error handlers
-        self.add_error_handler(Exception, self._python_error_handler)
-        self.add_error_handler(HTTPError, self._http_error_handler)
-        self.add_error_handler(HTTPStatus, self._http_status_handler)
+        if default_error_handlers:
+            self.add_error_handler(Exception, self._python_error_handler)
+            self.add_error_handler(HTTPError, self._http_error_handler)
+            self.add_error_handler(HTTPStatus, self._http_status_handler)
 
     def __call__(  # noqa: C901
         self, env: WSGIEnvironment, start_response: StartResponse
